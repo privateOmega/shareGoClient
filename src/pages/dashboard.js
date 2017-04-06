@@ -54,7 +54,7 @@ var Dashboard = React.createClass ({
       .then((response) => response.json())
       .then((responseData) => {
         console.log(responseData);
-        this.setState({"points", responseData.points});
+        this.setState({"points": responseData.points});
         this._onValueChange('email', responseData.email);
         this._onValueChange('points', responseData.points);
         this._onValueChange('number', responseData.number);
