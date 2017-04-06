@@ -5,7 +5,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    
     <uses-sdk
         android:minSdkVersion="16"
         android:targetSdkVersion="22" />
@@ -29,7 +30,7 @@
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
       <meta-data
       android:name="com.google.android.geo.API_KEY"
-      android:value="AIzaSyBvHCDv-lSaT7StbVjCENOLK7t3ky9UuO8"/>
+      android:value="AIzaSyBgSQD0eQwv5nrZR1AYnjXgZknZR6oDazQ"/>
     </application>
 
 </manifest>

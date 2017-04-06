@@ -54,7 +54,6 @@ var Dashboard = React.createClass ({
       .then((response) => response.json())
       .then((responseData) => {
         console.log(responseData);
-        this.setState({"points": responseData.points});
         this._onValueChange('email', responseData.email);
         this._onValueChange('points', responseData.points);
         this._onValueChange('number', responseData.number);
@@ -69,7 +68,6 @@ var Dashboard = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <Text style={styles.buttonText}>Points: {this.state.Points} </Text>
         <TouchableOpacity activeOpacity={.5} onPress={Actions.Driver}>
           <View style={styles.button}>
             <Text style={styles.buttonText}>Act as Driver</Text>

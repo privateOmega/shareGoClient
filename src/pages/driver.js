@@ -56,10 +56,6 @@ var Driver = React.createClass ({
       },
     };
   },
-  _setWebSocket(){
-    const ws = new WebSocket('wss://' + config.ipaddr+":8080/logged/location?token="+token)
-    console.log('Setting socket: ' + 'wss://' + config.ipaddr+":8080/logged/location?token="+token)
-  },
   async _userLogout() {
     try {
       await AsyncStorage.removeItem('token');
@@ -96,6 +92,7 @@ var Driver = React.createClass ({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         var initialPosition = JSON.stringify(position);
+        console.log(position);
         this.setState({
           region: {
             latitude: position.coords.latitude,
@@ -110,7 +107,7 @@ var Driver = React.createClass ({
         });
       },
       (error) => alert(error.message),
-        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+        {enableHighAccuracy: true, timeout: 50000, maximumAge: 1000}
       );
       this.watchID = navigator.geolocation.watchPosition((position) => {
         var lastPosition = JSON.stringify(position);
@@ -126,21 +123,17 @@ var Driver = React.createClass ({
         }
       this.onRegionChange(newRegion,newCoordinate);
     });
-    this._setWebSocket();
   },
   componentWillUnmount(){
     navigator.geolocation.clearWatch(this.watchID);
   },
-  onRegionChange(region) {
+  onRegionChange(region,coordinate) {
     this.setState({ region,coordinate });
   },
   render() {
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <View style={styles.markWrap}>
-          <Image source={mark} style={styles.mark} resizeMode="contain" />
-        </View>
         <Form
         ref="form"
         type={Person}
@@ -155,9 +148,9 @@ var Driver = React.createClass ({
           region={this.state.region}
           onRegionChange={this.onRegionChange}
           >
-            <MapView.Marker
+          <MapView.Marker
             coordinate={this.state.coordinate}
-            />
+          />
           </MapView>
         </View>
         </Image>
@@ -170,11 +163,21 @@ export default Driver;
 
 const styles = StyleSheet.create({
   map: {
-    height: height*0.6,
-    width: width
+    position: 'absolute',
+    height:height*0.60,
+    width:width,
+    top: 100,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   container: {
     flex: 1,
+    position: 'absolute',
+    top:0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   markWrap: {
   },
