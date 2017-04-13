@@ -25,14 +25,10 @@ const ASPECT_RATIO      = width / height;
 
 var Form = t.form.Form;
 var Person = t.struct({
-  Destination: t.String,
   NoOfPax: t.String
 });
 var options = {
   fields: {
-    Destination: {
-      placeholderTextColor: '#cccccc'
-    },
     NoOfPax: {
       placeholderTextColor: '#cccccc'
     }
@@ -41,16 +37,15 @@ var options = {
 };
 const LATITUDE_DELTA  = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-
-
+var moment = require('moment');
+var now = moment().format('H:mm:ss');
+var today = moment().format('D:MM:YYYY');
 var Driver = React.createClass ({
   openSearchModal() {
     RNGooglePlaces.openAutocompleteModal()
     .then((place) => {
         console.log(place);
-      // place represents user's selection from the
-      // suggestions and it is a simplified Google Place object.
-      this.setState({
+        this.setState({
           destination: {
             latitude: place.latitude,
             longitude: place.longitude,
@@ -91,18 +86,32 @@ var Driver = React.createClass ({
       console.log('AsyncStorage error: ' + error.message);
     }
   },
-  onPress() {
+  async onPress() {
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    
     var value = this.refs.form.getValue();
     if (value) {
       console.log(value);
-      fetch("http://"+config.ipaddr+":8080/logged/newTrip?token="+token, {
+      fetch("http://"+config.ipaddr+"/logged/newTrip?token="+token, {
         method: "POST",
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body:
-          "destination="+encodeURIComponent(value.Destination)+"&NoOfPax="+encodeURIComponent(value.NoOfPax)
+          "vId="+encodeURIComponent(KL01BV1540)+
+          "&startLatitude="+encodeURIComponent(coordinate.latitude)+
+          "&startLongitude="+encodeURIComponent(coordinate.longitude)+
+          "&endLatitude="+encodeURIComponent(destination.latitude)+
+          "&endLongitude="+encodeURIComponent(destination.latitude)+
+          "&user="+encodeURIComponent(username)+
+          "&user="+encodeURIComponent(value.NoOfPax)+
+          "&time="+encodeURIComponent(now)+
+          "&routeId="+encodeURIComponent("aah")+
+          "&latitude="+encodeURIComponent(coordinate.latitude)+
+          "&longitude="+encodeURIComponent(coordinate.longitude)+
+          "&date="+encodeURIComponent(today)
       })
       .then((response) => response.json())
       .then((responseData) => {
@@ -112,36 +121,7 @@ var Driver = React.createClass ({
     }
   },
   componentDidMount(){
-    LocationServicesDialogBox.checkLocationServicesIsEnabled({
-      message: "<h2>Use Location ?</h2>This app wants to change your device settings:<br/><br/>Uses GPS, Wi-Fi, and cell network for location<br/><br/>",
-      ok: "YES",
-      cancel: "NO"
-      }).then(function(success) {
-
-          /*navigator.geolocation.getCurrentPosition(
-          (position) => {
-            var initialPosition = JSON.stringify(position);
-            console.log(position);
-            this.setState({
-              region: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                latitudeDelta: LATITUDE_DELTA,
-                longitudeDelta: LONGITUDE_DELTA
-              },
-              coordinate: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              }
-            });
-          },
-          (error) => {
-            console.log(error.message);
-            alert("Turn on GPS first :P"+error.message);
-          },
-          {enableHighAccuracy: true, timeout: 10000, maximumAge: 1000}
-        );*/
-        this.watchID = navigator.geolocation.watchPosition((position) => {
+    this.watchID = navigator.geolocation.watchPosition((position) => {
             var lastPosition = JSON.stringify(position);
             console.log(position);
             this.setState({
@@ -157,50 +137,7 @@ var Driver = React.createClass ({
               }
             });
         });
-
-
-      }.bind(this)
-      ).catch((error) => {
-        console.log(error.message);
-    });
-
-    /*navigator.geolocation.getCurrentPosition(
-      (position) => {
-        var initialPosition = JSON.stringify(position);
-        console.log(position);
-        this.setState({
-          region: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA
-          },
-          coordinate: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }
-        });
-      },
-      (error) => {
-        console.log(error.message);
-        alert("Turn on GPS first :P"+error.message);
-      },
-      {enableHighAccuracy: true, timeout: 10000, maximumAge: 1000}
-    );
-    this.watchID = navigator.geolocation.watchPosition((position) => {
-        var lastPosition = JSON.stringify(position);
-        const newRegion = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA
-        }
-        const newCoordinate = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        }
-      this.onRegionChange(newRegion,newCoordinate);
-    });*/
+    console.log(now);
   },
   componentWillUnmount(){
     navigator.geolocation.clearWatch(this.watchID);
@@ -212,11 +149,11 @@ var Driver = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <View style={styles.container}>
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => this.openSearchModal()}
-        >
-          <Text>{this.state.destname}</Text>
+        style={styles.button}
+        onPress={() => this.openSearchModal()}>
+        <Text >{this.state.destname}</Text>
         </TouchableOpacity>
         <Form
         ref="form"
@@ -225,19 +162,18 @@ var Driver = React.createClass ({
         />
         <Button
         onPress={this.onPress}
-        title="->" />
-        <View style={styles.container}>
+        title="create trip" />
           <MapView
           style={styles.map}
           region={this.state.region}
           onRegionChange={this.onRegionChange}
           >
-          <MapView.Marker
+            <MapView.Marker
             coordinate={this.state.coordinate}
-          />
-          <MapView.Marker
+            />
+            <MapView.Marker
             coordinate={this.state.destination}
-          />
+            />
           </MapView>
         </View>
         </Image>
@@ -253,7 +189,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height:height*0.60,
     width:width,
-    top: 100,
+    top: 205,
     left: 0,
     right: 0,
     bottom: 0,
