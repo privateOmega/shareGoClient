@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
+import RNGooglePlaces from 'react-native-google-places';
+import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 
 const { width, height } = Dimensions.get("window");
 const background        = require("./background.jpg");
@@ -42,6 +44,22 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 
 var Driver = React.createClass ({
+  openSearchModal() {
+    RNGooglePlaces.openAutocompleteModal()
+    .then((place) => {
+        console.log(place);
+      // place represents user's selection from the
+      // suggestions and it is a simplified Google Place object.
+      this.setState({
+          destination: {
+            latitude: place.latitude,
+            longitude: place.longitude,
+          },
+          destname: place.name
+        });
+    })
+    .catch(error => console.log(error.message));  // error is a Javascript Error object
+  },
   getInitialState() {
     return {
       region: {
@@ -54,6 +72,11 @@ var Driver = React.createClass ({
         latitude: 0.000,
         longitude: 0.000,
       },
+      destination: {
+        latitude: 0.000,
+        longitude: 0.000
+      },
+      destname: "Choose a location"
     };
   },
   async _userLogout() {
@@ -89,7 +112,59 @@ var Driver = React.createClass ({
     }
   },
   componentDidMount(){
-    navigator.geolocation.getCurrentPosition(
+    LocationServicesDialogBox.checkLocationServicesIsEnabled({
+      message: "<h2>Use Location ?</h2>This app wants to change your device settings:<br/><br/>Uses GPS, Wi-Fi, and cell network for location<br/><br/>",
+      ok: "YES",
+      cancel: "NO"
+      }).then(function(success) {
+
+          /*navigator.geolocation.getCurrentPosition(
+          (position) => {
+            var initialPosition = JSON.stringify(position);
+            console.log(position);
+            this.setState({
+              region: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                latitudeDelta: LATITUDE_DELTA,
+                longitudeDelta: LONGITUDE_DELTA
+              },
+              coordinate: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              }
+            });
+          },
+          (error) => {
+            console.log(error.message);
+            alert("Turn on GPS first :P"+error.message);
+          },
+          {enableHighAccuracy: true, timeout: 10000, maximumAge: 1000}
+        );*/
+        this.watchID = navigator.geolocation.watchPosition((position) => {
+            var lastPosition = JSON.stringify(position);
+            console.log(position);
+            this.setState({
+              region: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                latitudeDelta: LATITUDE_DELTA,
+                longitudeDelta: LONGITUDE_DELTA
+              },
+              coordinate: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              }
+            });
+        });
+
+
+      }.bind(this)
+      ).catch((error) => {
+        console.log(error.message);
+    });
+
+    /*navigator.geolocation.getCurrentPosition(
       (position) => {
         var initialPosition = JSON.stringify(position);
         console.log(position);
@@ -106,10 +181,13 @@ var Driver = React.createClass ({
           }
         });
       },
-      (error) => alert(error.message),
-        {enableHighAccuracy: true, timeout: 50000, maximumAge: 1000}
-      );
-      this.watchID = navigator.geolocation.watchPosition((position) => {
+      (error) => {
+        console.log(error.message);
+        alert("Turn on GPS first :P"+error.message);
+      },
+      {enableHighAccuracy: true, timeout: 10000, maximumAge: 1000}
+    );
+    this.watchID = navigator.geolocation.watchPosition((position) => {
         var lastPosition = JSON.stringify(position);
         const newRegion = {
           latitude: position.coords.latitude,
@@ -122,7 +200,7 @@ var Driver = React.createClass ({
           longitude: position.coords.longitude,
         }
       this.onRegionChange(newRegion,newCoordinate);
-    });
+    });*/
   },
   componentWillUnmount(){
     navigator.geolocation.clearWatch(this.watchID);
@@ -134,6 +212,12 @@ var Driver = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => this.openSearchModal()}
+        >
+          <Text>{this.state.destname}</Text>
+        </TouchableOpacity>
         <Form
         ref="form"
         type={Person}
@@ -150,6 +234,9 @@ var Driver = React.createClass ({
           >
           <MapView.Marker
             coordinate={this.state.coordinate}
+          />
+          <MapView.Marker
+            coordinate={this.state.destination}
           />
           </MapView>
         </View>

@@ -83,7 +83,7 @@ var Signup = React.createClass ({
           <View style={styles.container}>
             <View style={styles.signupWrap}>
               <Text style={styles.accountText}>Remember Login Details?</Text>
-              <TouchableOpacity activeOpacity={.5} onPress={Actions.login({type: 'reset'})}>
+              <TouchableOpacity activeOpacity={.5} onPress={Actions.Login({type: 'reset'})}>
                 <View>
                   <Text style={styles.signupLinkText} >Sign In</Text>
                 </View>

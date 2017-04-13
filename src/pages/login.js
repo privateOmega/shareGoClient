@@ -52,7 +52,7 @@ var Login = React.createClass ({
     var value = this.refs.form.getValue();
     if (value) {
       console.log(value);
-      fetch("http://"+config.ipaddr+":8080/login", {
+      fetch("http://"+config.ipaddr+"/login", {
         method: "POST",
         headers: {
           'Accept': 'application/json',
@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "#FF3366",
+    backgroundColor: "#416788",
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 30,
   },
   buttonText: {
-    color: "#FFF",
+    color: "#E0E0E2",
     fontSize: 18,
   },
   forgotPasswordText: {

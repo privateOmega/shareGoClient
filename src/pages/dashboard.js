@@ -43,7 +43,7 @@ var Dashboard = React.createClass ({
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
     if(token && username){
-      fetch("http://"+config.ipaddr+":8080/logged/profile?token="+token, {
+      fetch("http://"+config.ipaddr+"/logged/profile?token="+token, {
         method: "POST",
         headers: {
           'Accept': 'application/json',

@@ -126,6 +126,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-android-location-services-dialog-box')
     compile project(':react-native-maps')
     compile project(':react-native-google-places')
     compile fileTree(dir: "libs", include: ["*.jar"])
