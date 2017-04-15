@@ -63,9 +63,15 @@ var Login = React.createClass ({
       })
       .then((response) => response.json())
       .then((responseData) => {
-        this._onValueChange('token', responseData.token);
-        this._onValueChange('username', value.Username);
-        Actions.Dashboard();
+        if(!responseData.success){
+          console.log("Auth failed");
+          alert("Authentication failed");
+        }
+        else{
+          this._onValueChange('token', responseData.token);
+          this._onValueChange('username', value.Username);
+          Actions.Dashboard();
+        }
       })
       .done();
     }

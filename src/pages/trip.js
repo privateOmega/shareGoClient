@@ -14,46 +14,18 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
-import RNGooglePlaces from 'react-native-google-places';
 
 const { width, height } = Dimensions.get("window");
 const background        = require("./background.jpg");
 const config            = require('../configurations/config');
-const t                 = require('tcomb-form-native');
 const ASPECT_RATIO      = width / height;
 
-var Form = t.form.Form;
-var Person = t.struct({
-  NoOfPax: t.String
-});
-var options = {
-  fields: {
-    NoOfPax: {
-      placeholderTextColor: '#cccccc'
-    }
-  },
-  auto: 'placeholders'
-};
 const LATITUDE_DELTA  = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 var moment = require('moment');
 var now = moment().format('H:mm:ss');
 var today = moment().format('D:MM:YYYY');
-var Driver = React.createClass ({
-  openSearchModal() {
-    RNGooglePlaces.openAutocompleteModal()
-    .then((place) => {
-        console.log(place);
-        this.setState({
-          destination: {
-            latitude: parseFloat(place.latitude),
-            longitude: parseFloat(place.longitude),
-          },
-          destname: place.name
-        });
-    })
-    .catch(error => console.log(error.message));  // error is a Javascript Error object
-  },
+var Trip = React.createClass ({
   getInitialState() {
     return {
       region: {
@@ -66,11 +38,14 @@ var Driver = React.createClass ({
         latitude: 0.000,
         longitude: 0.000,
       },
-      destination: {
+      start: {
         latitude: 0.000,
         longitude: 0.000
       },
-      destname: "Choose a location"
+      end:{
+        latitude: 0.000,
+        longitude: 0.000
+      }
     };
   },
   async _userLogout() {
@@ -83,42 +58,6 @@ var Driver = React.createClass ({
       console.log("Logout Success!")
     } catch (error) {
       console.log('AsyncStorage error: ' + error.message);
-    }
-  },
-  async onPress() {
-    var token = await AsyncStorage.getItem('token');
-    var username = await AsyncStorage.getItem('username');
-    console.log("yoyoy");
-    var value = this.refs.form.getValue();
-    if (value) {
-      fetch("http://"+config.ipaddr+"/logged/newTrip?token="+token, {
-        method: "POST",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body:
-          "vId="+encodeURIComponent("KL01BV1540")+
-          "&startLatitude="+encodeURIComponent(this.state.coordinate.latitude)+
-          "&startLongitude="+encodeURIComponent(this.state.coordinate.longitude)+
-          "&endLatitude="+encodeURIComponent(this.state.destination.latitude)+
-          "&endLongitude="+encodeURIComponent(this.state.destination.latitude)+
-          "&user="+encodeURIComponent(username)+
-          "&seats="+encodeURIComponent(value.NoOfPax)+
-          "&time="+encodeURIComponent(now)+
-          "&routeId="+encodeURIComponent("aah")+
-          "&latitude="+encodeURIComponent(this.state.coordinate.latitude)+
-          "&longitude="+encodeURIComponent(this.state.coordinate.longitude)+
-          "&date="+encodeURIComponent(today)
-      })
-      .then((response) => response.json())
-      .then((responseData) => {
-          console.log("katta Success");
-          console.log(responseData);
-          Actions.Trip({_id: responseData._id, role: "driver" });
-          alert("Trip Created Sucessfully");
-      })
-      .done();
     }
   },
   componentDidMount(){
@@ -146,37 +85,64 @@ var Driver = React.createClass ({
   onRegionChange(region,coordinate) {
     this.setState({ region,coordinate });
   },
+  async getTripDetails(){
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    if (token && username) {
+      fetch("http://"+config.ipaddr+"/logged/getTripDetails?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:
+          "_id="+encodeURIComponent(this.props._id)+
+          "&role="+encodeURIComponent(this.props.role)
+          
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+          console.log("yo success");
+          console.log(responseData);
+          this.setState({
+            start:{
+              latitude: parseFloat(responseData.startLatitude),
+              longitude: parseFloat(responseData.startLongitude)
+            },
+            end:{
+              latitude: parseFloat(responseData.endLatitude),
+              longitude: parseFloat(responseData.endLongitude)
+            }
+          });
+      })
+      .done();
+    }
+  },
+  componentWillMount(){
+    this.getTripDetails();
+  },
   render() {
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <Text>Role is {this.props.role}</Text>
+        
         <View style={styles.container}>
-        <TouchableOpacity
-        style={styles.button}
-        onPress={() => this.openSearchModal()}>
-        <Text >{this.state.destname}</Text>
-        </TouchableOpacity>
-        <Form
-        ref="form"
-        type={Person}
-        options={options}
-        />
-        <TouchableOpacity activeOpacity={.5} onPress={this.onPress}>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Create Trip</Text>
-          </View>
-        </TouchableOpacity>
-        <MapView
+          <MapView
           style={styles.map}
           region={this.state.region}
           onRegionChange={this.onRegionChange}
           >
             <MapView.Marker
-            coordinate={this.state.coordinate}
+            coordinate={this.state.start}
             />
             <MapView.Marker
-            coordinate={this.state.destination}
+            coordinate={this.state.end}
             />
+            <MapView.Marker
+            coordinate={this.state.coordinate}
+            />
+
           </MapView>
         </View>
         </Image>
@@ -185,7 +151,7 @@ var Driver = React.createClass ({
   }
 });
 
-export default Driver;
+export default Trip;
 
 const styles = StyleSheet.create({
   map: {

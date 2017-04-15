@@ -9,7 +9,7 @@ import ForgotPassword from './src/pages/forgot';
 import Dashboard from './src/pages/dashboard';
 import Driver from './src/pages/driver';
 import Pax from './src/pages/pax';
-
+import Trip from './src/pages/trip';
 
 
 export default class shareGo extends Component {
@@ -24,6 +24,7 @@ export default class shareGo extends Component {
           <Scene key="Signupcont" component={Signupcont} hideNavBar={true} />
           <Scene key="Driver" component={Driver} hideNavBar={true} />
           <Scene key="Pax" component={Pax} hideNavBar={true} />
+          <Scene key="Trip" component={Trip} hideNavBar={true} />
         </Scene>
       </Router>
     )

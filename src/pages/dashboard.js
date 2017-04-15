@@ -61,23 +61,76 @@ var Dashboard = React.createClass ({
       .done();
     }
   },
+  async renderIf() {
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    console.log("rendering");
+    if(token && username){
+      fetch("http://"+config.ipaddr+"/logged/getTrip?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:"user="+encodeURIComponent(username)
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log(responseData);
+        if(responseData.success == true) {
+          this.setState({success: true,role: responseData.role,_id: responseData._id});
+          console.log("Success is true");
+        }else {
+          this.setState({success: false,role: "",_id: ""});
+        }   
+      })
+      .done();
+    }
+  },
+  rendering(){
+    //console.log(this.state.success+this.state.role+this.state._id);
+    if(this.state.success==null)
+      return null;
+    else if(this.state.success){
+      var tripRole = this.state.role,
+        tripId = this.state._id;
+      return(
+          <TouchableOpacity activeOpacity={.5} onPress={ _ => Actions.Trip({_id: this.state._id,role: this.state.role}) }>
+              <View style={styles.button}>
+                <Text style={styles.buttonText}>Current Trip</Text>
+              </View>
+            </TouchableOpacity>
+      );
+    }
+    else if(!this.state.success){
+      return(
+        <View style={styles.container}>
+          <TouchableOpacity activeOpacity={.5} onPress={Actions.Driver}>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>Act as Driver</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={.5} onPress={Actions.Pax}>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>Act as Passenger</Text>
+                </View>
+              </TouchableOpacity>
+        </View>
+      );
+    }
+  },
   componentWillMount(){
-    this.getUserDetails();
+    this.setState({success: null});
+    //this.setState({success: false,role: "",_id: ""});
+    //this.getUserDetails();
+    this.renderIf();
+    
   },
   render() {
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <TouchableOpacity activeOpacity={.5} onPress={Actions.Driver}>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Act as Driver</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={.5} onPress={Actions.Pax}>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Act as Passenger</Text>
-          </View>
-        </TouchableOpacity>
+          {this.rendering()}
         </Image>
       </View>
     );
