@@ -14,48 +14,18 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
-import RNGooglePlaces from 'react-native-google-places';
 
 const { width, height } = Dimensions.get("window");
 const background        = require("./background.jpg");
 const config            = require('../configurations/config');
-const t                 = require('tcomb-form-native');
 const ASPECT_RATIO      = width / height;
-
-var Form = t.form.Form;
-var Person = t.struct({
-  NoOfPax: t.String
-});
-var options = {
-  fields: {
-    NoOfPax: {
-      placeholderTextColor: '#cccccc'
-    }
-  },
-  auto: 'placeholders'
-};
 
 const LATITUDE_DELTA  = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 var moment = require('moment');
 var now = moment().format('H:mm:ss');
 var today = moment().format('D:MM:YYYY');
-
-var Pax = React.createClass ({
-  openSearchModal() {
-    RNGooglePlaces.openAutocompleteModal()
-    .then((place) => {
-        console.log(place);
-        this.setState({
-          destination: {
-            latitude: place.latitude,
-            longitude: place.longitude,
-          },
-          destname: place.name
-        });
-    })
-    .catch(error => console.log(error.message));  // error is a Javascript Error object
-  },
+var Trip = React.createClass ({
   getInitialState() {
     return {
       region: {
@@ -68,14 +38,24 @@ var Pax = React.createClass ({
         latitude: 0.000,
         longitude: 0.000,
       },
-      destination: {
+      start: {
         latitude: 0.000,
         longitude: 0.000
       },
-      destname: "Select Destination"
+      end:{
+        latitude: 0.000,
+        longitude: 0.000
+      },
+      markers:[{
+            title: "anything",
+            coordinates: {
+            latitude : 0.000,
+            longitude : 0.000,
+        }
+      }]
     };
   },
- async _userLogout() {
+  async _userLogout() {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('username');
@@ -87,10 +67,10 @@ var Pax = React.createClass ({
       console.log('AsyncStorage error: ' + error.message);
     }
   },
- componentDidMount(){
+  componentDidMount(){
     this.watchID = navigator.geolocation.watchPosition((position) => {
             var lastPosition = JSON.stringify(position);
-            console.log(position);
+            console.log("POS = "+position);
             this.setState({
               region: {
                 latitude: position.coords.latitude,
@@ -104,7 +84,8 @@ var Pax = React.createClass ({
               }
             });
         });
-    console.log(now);
+   this.getDriverMarkers();
+  
   },
   componentWillUnmount(){
     navigator.geolocation.clearWatch(this.watchID);
@@ -112,73 +93,78 @@ var Pax = React.createClass ({
   onRegionChange(region,coordinate) {
     this.setState({ region,coordinate });
   },
-    async onPress() {
+  async getDriverMarkers(){
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
-    
-    var value = this.refs.form.getValue();
-    if (value) {
-      console.log(value);
-      fetch("http://"+config.ipaddr+"/logged/newPaxTrip?token="+token, {
+    console.log("PAX LATITUDE ISSSS "+this.props.paxlatitude);
+    if (token && username) {
+      fetch("http://"+config.ipaddr+"/logged/matchPaxtoDriver?token="+token, {
         method: "POST",
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body:
-          "&startLatitude="+encodeURIComponent(this.state.coordinate.latitude)+
-          "&startLongitude="+encodeURIComponent(this.state.coordinate.longitude)+
-          "&currentLatitude="+encodeURIComponent(this.state.coordinate.latitude)+
-          "&currentLongitude="+encodeURIComponent(this.state.coordinate.longitude)+
-          "&endLatitude="+encodeURIComponent(this.state.destination.latitude)+
-          "&endLongitude="+encodeURIComponent(this.state.destination.latitude)+
-          "&user="+encodeURIComponent(username)+
-          "&time="+encodeURIComponent(now)+
-          "&routeId="+encodeURIComponent("aah")+
-          "&status="+encodeURIComponent("readyfordriver")+
-          "&date="+encodeURIComponent(today)
+          "&_id="+encodeURIComponent(this.props._id)+
+          "&paxLatitude="+encodeURIComponent(this.props.paxlatitude)+
+          "&paxLongitude="+encodeURIComponent(this.props.paxlongitude)
+          
       })
       .then((response) => response.json())
       .then((responseData) => {
-          alert(username +" requested trip success !");
-          console.log("\nRESPONSE ID IS"+responseData._id +"RESPONSE\n ");
-          console.log("buhahha");
-          Actions.SelectDriver({ type:'replace',paxlatitude:this.state.coordinate.latitude,paxlongitude:this.state.coordinate.longitude, role: "pax" });
+          console.log("yo success");
+         /* for(var username in responseData.driverList){
+              console.log("\n" + username +": "+responseData.driverList[username]);
+           }
+
+         */
+          console.log(responseData.jArr);
+          var myArray =  responseData.jArr;
+          for(var i=0 ; i<myArray.length;i++)
+          {   console.log("\nUSER"+(i+1))
+              console.log(myArray[i].title);
+              console.log(myArray[i].coordinates.latitude);
+              myArray[i].coordinates.latitude=parseFloat(myArray[i].coordinates.latitude);
+              console.log(myArray[i].coordinates.longitude);
+              myArray[i].coordinates.longitude=parseFloat(myArray[i].coordinates.longitude);
+          }
+         console.log("GOT DATA ");
+          this.setState({
+            start:{
+              latitude: parseFloat(responseData.startLatitude),
+              longitude: parseFloat(responseData.startLongitude)
+            },
+            end:{
+              latitude: parseFloat(responseData.endLatitude),
+              longitude: parseFloat(responseData.endLongitude)
+            },
+            markers: myArray
+            
+          });
       })
       .done();
     }
   },
-    render() {
+  componentWillMount(){
+   
+  },
+  render() {
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <Text>Role is {this.props.role}</Text>
+
         <View style={styles.container}>
-        <TouchableOpacity
-        style={styles.button}
-        onPress={() => this.openSearchModal()}>
-        <Text >{this.state.destname}</Text>
-        </TouchableOpacity>
-        <Form
-        ref="form"
-        type={Person}
-        options={options}
-        />
-        <TouchableOpacity activeOpacity={.5} onPress={this.onPress}>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Request Driver</Text>
-          </View>
-        </TouchableOpacity>
-        <MapView
-          style={styles.map}
-          region={this.state.region}
-          onRegionChange={this.onRegionChange}
-          >
-            <MapView.Marker
-            coordinate={this.state.coordinate}
-            />
-            <MapView.Marker
-            coordinate={this.state.destination}
-            />
+
+           <MapView region={this.state.region} style={styles.map} >
+             {this.state.markers.map(marker => (
+              <MapView.Marker
+                 coordinate={marker.coordinates}
+                 title={marker.title}
+                 key={marker.title}
+                 
+              />
+            ))}
           </MapView>
         </View>
         </Image>
@@ -187,7 +173,7 @@ var Pax = React.createClass ({
   }
 });
 
-export default Pax;
+export default Trip;
 
 const styles = StyleSheet.create({
   map: {
