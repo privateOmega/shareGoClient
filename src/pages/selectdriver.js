@@ -52,7 +52,8 @@ var Trip = React.createClass ({
             latitude : 0.000,
             longitude : 0.000,
         }
-      }]
+      }],
+      paxUser: "Initial"
     };
   },
   async _userLogout() {
@@ -96,6 +97,7 @@ var Trip = React.createClass ({
   async getDriverMarkers(){
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
+    this.setState({paxUser:username});
     console.log("PAX LATITUDE ISSSS "+this.props.paxlatitude);
     if (token && username) {
       fetch("http://"+config.ipaddr+"/logged/matchPaxtoDriver?token="+token, {
@@ -145,8 +147,38 @@ var Trip = React.createClass ({
       .done();
     }
   },
+  async connectPaxtoDriver(driverUser,paxUser){
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    console.log("PAX LATITUDE ISSSS "+this.props.paxlatitude);
+    if (token && username) {
+      fetch("http://"+config.ipaddr+"/logged/connectPaxToDriver?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:
+          "&driverUser="+encodeURIComponent(driverUser)+
+          "&paxUser="+encodeURIComponent(username)
+          
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+          console.log("SUCCESS AYO ?");
+          alert(driverUser + " AND " + username +" are sharing a ride together !");
+         /* for(var username in responseData.driverList){
+              console.log("\n" + username +": "+responseData.driverList[username]);
+           }
+
+         */
+        })
+      .done();
+    }
+  },
+
   componentWillMount(){
-   
+  console.log('\nMOUNTED'); 
   },
   render() {
     return (
@@ -158,7 +190,7 @@ var Trip = React.createClass ({
 
            <MapView region={this.state.region} style={styles.map} >
              {this.state.markers.map(marker => (
-              <MapView.Marker
+              <MapView.Marker  onPress={() => {this.connectPaxtoDriver(marker.title,this.state.paxUser)}}
                  coordinate={marker.coordinates}
                  title={marker.title}
                  key={marker.title}
