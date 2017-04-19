@@ -10,6 +10,7 @@ import Dashboard from './src/pages/dashboard';
 import Driver from './src/pages/driver';
 import Pax from './src/pages/pax';
 import Trip from './src/pages/trip';
+import SelectDriver from './src/pages/selectdriver';
 
 
 export default class shareGo extends Component {
@@ -25,6 +26,7 @@ export default class shareGo extends Component {
           <Scene key="Driver" component={Driver} hideNavBar={true} />
           <Scene key="Pax" component={Pax} hideNavBar={true} />
           <Scene key="Trip" component={Trip} hideNavBar={true} onBack = {() =>{return null;}}/>
+          <Scene key="SelectDriver" component={SelectDriver} hideNavBar={true}  />
         </Scene>
       </Router>
     )
