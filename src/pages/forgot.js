@@ -36,7 +36,7 @@ var ForgotPassword = React.createClass({
     var value = this.refs.form.getValue();
     if (value) {
       console.log(value);
-      fetch("http://"+config.ipaddr+":8080/forgot", {
+      fetch("http://"+config.ipaddr+"/forgot", {
         method: "POST",
         headers: {
           'Accept': 'application/json',
@@ -58,10 +58,15 @@ var ForgotPassword = React.createClass({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <View style={styles.markWrap}>
+        <Text style={styles.HText}> Reset your account</Text>
+        </View>
+        <View style={styles.textCon}>
           <Text>Follow these simple steps to reset your Account </Text>
           <Text>1.Enter your email address associated with account.</Text>
           <Text>2.Wait for your recovery details to be sent.</Text>
           <Text>3.Follow instructions and be re-united with your sharego account.</Text>
+        </View>  
           <Form
           ref="form"
           type={Person}
@@ -72,7 +77,7 @@ var ForgotPassword = React.createClass({
               <Text style={styles.buttonText}>Forgot Password</Text>
             </View>
           </TouchableOpacity>
-          <Text style={styles.buttonText} onPress={Actions.Login({type: 'reset'})}>Remember details</Text>
+          <Text style={styles.buttonText} onPress={_ => Actions.Login({type: 'reset'})}>Remember details</Text>
         </Image>
       </View>
     );
@@ -86,7 +91,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   markWrap: {
-    flex: 1,
     paddingVertical: 30,
   },
   mark: {
@@ -122,14 +126,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "#FF3366",
+    backgroundColor: "#416788",
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 30,
   },
   buttonText: {
-    color: "#FFF",
+    color: "#E0E0E2",
     fontSize: 18,
   },
   forgotPasswordText: {
@@ -150,5 +154,12 @@ const styles = StyleSheet.create({
   signupLinkText: {
     color: "#FFF",
     marginLeft: 5,
+  },
+  HText: {
+    color: "#416788",
+    fontSize: 18,
+  },
+  textCon: {
+    paddingVertical: 20
   }
 });

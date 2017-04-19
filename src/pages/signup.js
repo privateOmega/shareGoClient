@@ -29,26 +29,26 @@ var Person = t.struct({
 var options = {
   fields: {
     Name: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Email: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Username: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Password: {
       password: true,
       secureTextEntry: true,
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Confirmpassword: {
       password: true,
       secureTextEntry: true,
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Phone: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
   },
   auto: 'placeholders'
@@ -70,6 +70,9 @@ var Signup = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <View style={styles.markWrap}>
+        <Text style={styles.HText}> Create your account</Text>
+        </View>
           <Form
           ref="form"
           type={Person}
@@ -83,7 +86,7 @@ var Signup = React.createClass ({
           <View style={styles.container}>
             <View style={styles.signupWrap}>
               <Text style={styles.accountText}>Remember Login Details?</Text>
-              <TouchableOpacity activeOpacity={.5} onPress={Actions.Login({type: 'reset'})}>
+              <TouchableOpacity activeOpacity={.5} onPress={_ => Actions.Login({type: 'reset'})}>
                 <View>
                   <Text style={styles.signupLinkText} >Sign In</Text>
                 </View>
@@ -99,6 +102,14 @@ var Signup = React.createClass ({
 export default Signup;
 
 let styles = StyleSheet.create({
+  markWrap: {
+    paddingVertical: 23,
+  },
+  mark: {
+    width: null,
+    height: null,
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -178,5 +189,37 @@ let styles = StyleSheet.create({
   },
   whiteFont: {
     color: '#FFF'
-  }
+  },
+  background: {
+    width,
+    height,
+  },
+  button: {
+    backgroundColor: "#416788",
+    paddingVertical: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 30,
+  },
+  buttonText: {
+    color: "#E0E0E2",
+    fontSize: 18,
+  },
+  signupWrap: {
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accountText: {
+    color: "#41739f"
+  },
+  signupLinkText: {
+    color: "#416788",
+    marginLeft: 5,
+  },
+  HText: {
+    color: "#416788",
+    fontSize: 18,
+  },
 });

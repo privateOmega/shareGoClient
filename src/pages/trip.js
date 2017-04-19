@@ -24,7 +24,8 @@ const LATITUDE_DELTA  = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 var moment = require('moment');
 var now = moment().format('H:mm:ss');
-var today = moment().format('D:MM:YYYY');
+var today = moment().format('D:MM:YYYY');   
+
 var Trip = React.createClass ({
   getInitialState() {
     return {
@@ -45,7 +46,8 @@ var Trip = React.createClass ({
       end:{
         latitude: 0.000,
         longitude: 0.000
-      }
+      },
+      user: "none"
     };
   },
   async _userLogout() {
@@ -60,10 +62,22 @@ var Trip = React.createClass ({
       console.log('AsyncStorage error: ' + error.message);
     }
   },
+   socketSend(user,latitude,longitude){
+    var ws = new WebSocket('ws://'+config.ipaddr+'/logged/echo');
+    console.log(String(user));
+    //var a = toString(user+latitude+longitude);
+    ws.onopen = (user,latitude,longitude) => {
+      console.log('Send something');
+      ws.send('something'); // send a message
+      
+    };
+  },
   componentDidMount(){
-    this.watchID = navigator.geolocation.watchPosition((position) => {
+
+     this.watchID = navigator.geolocation.watchPosition((position) => {
             var lastPosition = JSON.stringify(position);
-            console.log(position);
+            console.log(this.state.user+position.coords.latitude+position.coords.longitude);
+            this.socketSend(this.state.user,position.coords.latitude,position.coords.longitude);   
             this.setState({
               region: {
                 latitude: position.coords.latitude,
@@ -72,8 +86,8 @@ var Trip = React.createClass ({
                 longitudeDelta: LONGITUDE_DELTA
               },
               coordinate: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
+                latitude: parseFloat(position.coords.latitude),
+                longitude: parseFloat(position.coords.longitude),
               }
             });
         });
@@ -82,12 +96,15 @@ var Trip = React.createClass ({
   componentWillUnmount(){
     navigator.geolocation.clearWatch(this.watchID);
   },
-  onRegionChange(region,coordinate) {
-    this.setState({ region,coordinate });
+  onRegionChange(region) {
+    this.setState({ region});
   },
   async getTripDetails(){
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
+    this.setState({
+      user: username
+    });
     if (token && username) {
       fetch("http://"+config.ipaddr+"/logged/getTripDetails?token="+token, {
         method: "POST",
@@ -102,7 +119,6 @@ var Trip = React.createClass ({
       })
       .then((response) => response.json())
       .then((responseData) => {
-          console.log("yo success");
           console.log(responseData);
           this.setState({
             start:{
@@ -125,9 +141,19 @@ var Trip = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <Text>Role is {this.props.role}</Text>
-        
-        <View style={styles.container}>
+          <View>
+            <View style={{flexDirection:'row'}}><Text style={styles.points}>Driver:</Text><Text></Text></View>
+          </View>
+          <TouchableOpacity activeOpacity={.5}>
+                <View style={{borderRadius:6,backgroundColor:'#416788',paddingVertical:20,marginTop:30,justifyContent:'center',alignItems:'center'}}>
+                  <Text style={styles.buttonText}>SOS</Text>
+                </View>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={.5}>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>Cancel Trip</Text>
+                </View>
+          </TouchableOpacity>
           <MapView
           style={styles.map}
           region={this.state.region}
@@ -144,7 +170,6 @@ var Trip = React.createClass ({
             />
 
           </MapView>
-        </View>
         </Image>
       </View>
     );
@@ -234,5 +259,8 @@ const styles = StyleSheet.create({
   signupLinkText: {
     color: "#FFF",
     marginLeft: 5,
+  },
+  points:{
+    fontSize:18,
   }
 });

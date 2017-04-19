@@ -17,27 +17,27 @@ import { Actions } from 'react-native-router-flux';
 const { width, height } = Dimensions.get("window");
 const background        = require("./background.jpg");
 const config            = require('../configurations/config');
-
+const mark              = require("./login2_mark.png");
+import Icon from 'react-native-vector-icons/MaterialIcons';
+const points = (<Icon name="star" size={40} color="#416788" />);
+const driver = (<Icon name="person" size={30} color="#416788" />);
+const pax = (<Icon name="person-add" size={30} color="#416788" />);
 var Dashboard = React.createClass ({
-  async _onValueChange(item, selectedValue) {
-    try {
-      await AsyncStorage.setItem(item, selectedValue);
-    }
-    catch (error) {
-      console.log('AsyncStorage error: ' + error.message);
-    }
-  },
   async _userLogout() {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('username');
-      await AsyncStorage.removeItem('email');
-      await AsyncStorage.removeItem('number');
-      await AsyncStorage.removeItem('points');
       console.log("Logout Success!")
     } catch (error) {
       console.log('AsyncStorage error: ' + error.message);
     }
+  },
+  getInitialState() {
+    return {
+      driverRating: 0,
+      paxRating: 0,
+      points: 0
+    };
   },
   async getUserDetails() {
     var token = await AsyncStorage.getItem('token');
@@ -53,10 +53,11 @@ var Dashboard = React.createClass ({
       })
       .then((response) => response.json())
       .then((responseData) => {
-        console.log(responseData);
-        this._onValueChange('email', responseData.email);
-        this._onValueChange('points', responseData.points);
-        this._onValueChange('number', responseData.number);
+        this.setState({
+          driverRating: responseData.driverRating,
+          paxRating: responseData.paxRating,
+          points: responseData.points
+        })
       })
       .done();
     }
@@ -76,10 +77,10 @@ var Dashboard = React.createClass ({
       })
       .then((response) => response.json())
       .then((responseData) => {
-        console.log(responseData);
+        //console.log(responseData);
         if(responseData.success == true) {
           this.setState({success: true,role: responseData.role,_id: responseData._id});
-          console.log("Success is true");
+          //console.log("Success is true");
         }else {
           this.setState({success: false,role: "",_id: ""});
         }   
@@ -104,7 +105,7 @@ var Dashboard = React.createClass ({
     }
     else if(!this.state.success){
       return(
-        <View style={styles.container}>
+        <View style={{alignItems:'center',marginLeft:10,marginRight:10}}>
           <TouchableOpacity activeOpacity={.5} onPress={Actions.Driver}>
                 <View style={styles.button}>
                   <Text style={styles.buttonText}>Act as Driver</Text>
@@ -122,7 +123,7 @@ var Dashboard = React.createClass ({
   componentWillMount(){
     this.setState({success: null});
     //this.setState({success: false,role: "",_id: ""});
-    //this.getUserDetails();
+    this.getUserDetails();
     this.renderIf();
     
   },
@@ -130,6 +131,17 @@ var Dashboard = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+          <View style={styles.markWrap}>
+            <View style={{flexDirection:'column',borderWidth:3}}>
+              <View style={{flexDirection:'row',justifyContent:'center', alignItems:'center',borderBottomWidth:3,paddingHorizontal:5}}>{driver}<Text style={styles.points}>{this.state.driverRating}</Text></View>
+              <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>{pax}<Text style={styles.points}>{this.state.paxRating}</Text></View>
+            </View>
+            <Image source={mark} style={styles.mark} resizeMode="contain" />
+            <View style={{justifyContent:'center', alignItems:'center',borderWidth:3,paddingHorizontal:5}}>
+              {points}
+              <Text style={styles.points}>{this.state.points}</Text>
+            </View>
+          </View>
           {this.rendering()}
         </Image>
       </View>
@@ -148,11 +160,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   markWrap: {
+    paddingVertical: 30,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginLeft: 20,
+    marginRight: 20
   },
   mark: {
     width: 150,
     height: 150,
-    flex: 1
   },
   background: {
     width,
@@ -182,14 +199,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "#FF3366",
+    backgroundColor: "#416788",
     paddingVertical: 20,
-    alignItems: "center",
-    justifyContent: "center",
     marginTop: 30,
+    width,
+    alignItems:'center'
   },
   buttonText: {
-    color: "#FFF",
+    color: "#E0E0E2",
     fontSize: 18,
   },
   forgotPasswordText: {
@@ -210,5 +227,8 @@ const styles = StyleSheet.create({
   signupLinkText: {
     color: "#FFF",
     marginLeft: 5,
+  },
+  points:{
+    fontSize:18,
   }
 });

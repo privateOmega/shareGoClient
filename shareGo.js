@@ -24,7 +24,7 @@ export default class shareGo extends Component {
           <Scene key="Signupcont" component={Signupcont} hideNavBar={true} />
           <Scene key="Driver" component={Driver} hideNavBar={true} />
           <Scene key="Pax" component={Pax} hideNavBar={true} />
-          <Scene key="Trip" component={Trip} hideNavBar={true} />
+          <Scene key="Trip" component={Trip} hideNavBar={true} onBack = {() =>{return null;}}/>
         </Scene>
       </Router>
     )

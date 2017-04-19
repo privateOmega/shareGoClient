@@ -13,41 +13,52 @@ import { Actions } from 'react-native-router-flux';
 
 const { width, height } = Dimensions.get("window");
 const background        = require("./background.jpg");
+const config            = require('../configurations/config');
+var moment = require('moment');
 
 var t = require('tcomb-form-native');
 var Form = t.form.Form;
+
+var Gender = t.enums({
+  Male: 'Male',
+  Female: 'Female'
+});
+
 var Person = t.struct({
-  Phone:     t.Number,
-  Gender:    t.String,
+  Gender:    Gender,
   Aadhar:    t.String,
   State:     t.String,
   City:      t.String,
   Pincode:   t.Number,
-  Dob:       t.Date
+  Dob:       t.Date,
 });
+
+let myFormatFunction = (format,date) =>{
+  return moment(date).format(format);
+};
 
 var options = {
   fields: {
-    Phone: {
-      placeholderTextColor: '#cccccc'
-    },
     Gender: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Aadhar: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     State: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     City: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Pincode: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
-    Dob: {
-      placeholderTextColor: '#cccccc'
+    Dob:    {
+      placeholderTextColor: '#ffffff',
+      config: {
+        format:(date) => myFormatFunction("DD MMM YYYY",date)
+      }
     }
 },
   auto: 'placeholders'
@@ -57,7 +68,7 @@ var Signupcont = React.createClass ({
   onPress() {
     var value = this.refs.form.getValue();
     if (value) {
-      fetch("http://"+config.ipaddr+":8080/signup", {
+      fetch("http://"+config.ipaddr+"/signup", {
         method: "POST",
         headers: {
           'Accept': 'application/json',
@@ -69,7 +80,7 @@ var Signupcont = React.createClass ({
           "&username="+encodeURIComponent(this.props.Username)+
           "&password="+encodeURIComponent(this.props.Password)+
           "&gender="+encodeURIComponent(value.Gender)+
-          "&number="+encodeURIComponent(value.Phone)+
+          "&number="+encodeURIComponent(this.props.Phone)+
           "&aadharNo="+encodeURIComponent(value.Aadhar)+
           "&state="+encodeURIComponent(value.State)+
           "&city="+encodeURIComponent(value.City)+
@@ -78,7 +89,9 @@ var Signupcont = React.createClass ({
       })
       .then((response) => response.json())
       .then((responseData) => {
-        console.log("Response is"+responseData);
+        //console.log("Response is"+responseData);
+        alert("Registration Completed");
+        Actions.Login({type: 'reset'});
       })
       .done();
     }
@@ -87,14 +100,17 @@ var Signupcont = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
+        <View style={styles.markWrap}>
+        <Text style={styles.HText}>{this.props.Name},Complete your account</Text>
+        </View>
           <Form
           ref="form"
           type={Person}
           options={options}
           />
-          <TouchableOpacity activeOpacity={.5} onPress={this.onPress.bind(this)}>
+          <TouchableOpacity activeOpacity={.5} onPress={this.onPress}>
             <View style={styles.button}>
-              <Text style={styles.buttonText}>Next</Text>
+              <Text style={styles.buttonText}>Register</Text>
             </View>
           </TouchableOpacity>
         </Image>
@@ -184,5 +200,32 @@ let styles = StyleSheet.create({
   },
   whiteFont: {
     color: '#FFF'
-  }
+  },
+  markWrap: {
+    paddingVertical: 23,
+  },
+  mark: {
+    width: null,
+    height: null,
+    flex: 1,
+  },
+  background: {
+    width,
+    height
+  },
+  HText: {
+    color: "#416788",
+    fontSize: 18,
+  },
+  button: {
+    backgroundColor: "#416788",
+    paddingVertical: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 30,
+  },
+  buttonText: {
+    color: "#E0E0E2",
+    fontSize: 18,
+  },
 });

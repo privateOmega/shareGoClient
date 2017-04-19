@@ -21,15 +21,20 @@ const background        = require("./background.jpg");
 const config            = require('../configurations/config');
 const t                 = require('tcomb-form-native');
 const ASPECT_RATIO      = width / height;
+const mark              = require("./login2_mark.png");
+import Icon from 'react-native-vector-icons/MaterialIcons';
+const points = (<Icon name="star" size={40} color="#416788" />);
+const driver = (<Icon name="person" size={30} color="#416788" />);
+const pax = (<Icon name="person-add" size={30} color="#416788" />);
 
 var Form = t.form.Form;
 var Person = t.struct({
-  NoOfPax: t.String
+  Pax: t.String
 });
 var options = {
   fields: {
-    NoOfPax: {
-      placeholderTextColor: '#cccccc'
+    Pax: {
+      placeholderTextColor: '#ffffff'
     }
   },
   auto: 'placeholders'
@@ -70,26 +75,51 @@ var Driver = React.createClass ({
         latitude: 0.000,
         longitude: 0.000
       },
-      destname: "Choose a location"
+      destname: "V  Choose a location",
+      driverRating: 0,
+      paxRating: 0,
+      points: 0
     };
   },
   async _userLogout() {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('username');
-      await AsyncStorage.removeItem('email');
-      await AsyncStorage.removeItem('number');
-      await AsyncStorage.removeItem('points');
       console.log("Logout Success!")
     } catch (error) {
       console.log('AsyncStorage error: ' + error.message);
     }
   },
+  async getUserDetails() {
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    if(token && username){
+      fetch("http://"+config.ipaddr+"/logged/profile?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:"username="+encodeURIComponent(username)
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log(responseData);
+        this.setState({
+          driverRating: responseData.driverRating,
+          paxRating: responseData.paxRating,
+          points: responseData.points
+        })
+      })
+      .done();
+    }
+  },
   async onPress() {
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
-    console.log("yoyoy");
     var value = this.refs.form.getValue();
+    console.log("yoyoy"+value);
+    
     if (value) {
       fetch("http://"+config.ipaddr+"/logged/newTrip?token="+token, {
         method: "POST",
@@ -104,7 +134,7 @@ var Driver = React.createClass ({
           "&endLatitude="+encodeURIComponent(this.state.destination.latitude)+
           "&endLongitude="+encodeURIComponent(this.state.destination.latitude)+
           "&user="+encodeURIComponent(username)+
-          "&seats="+encodeURIComponent(value.NoOfPax)+
+          "&seats="+encodeURIComponent(value.Pax)+
           "&time="+encodeURIComponent(now)+
           "&routeId="+encodeURIComponent("aah")+
           "&latitude="+encodeURIComponent(this.state.coordinate.latitude)+
@@ -124,7 +154,7 @@ var Driver = React.createClass ({
   componentDidMount(){
     this.watchID = navigator.geolocation.watchPosition((position) => {
             var lastPosition = JSON.stringify(position);
-            console.log(position);
+            //console.log(position);
             this.setState({
               region: {
                 latitude: position.coords.latitude,
@@ -133,12 +163,15 @@ var Driver = React.createClass ({
                 longitudeDelta: LONGITUDE_DELTA
               },
               coordinate: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
+                latitude: parseFloat(position.coords.latitude),
+                longitude: parseFloat(position.coords.longitude),
               }
             });
         });
-    console.log(now);
+    //console.log(now);
+  },
+  componentWillMount(){
+    this.getUserDetails();
   },
   componentWillUnmount(){
     navigator.geolocation.clearWatch(this.watchID);
@@ -150,17 +183,33 @@ var Driver = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <View style={styles.container}>
-        <TouchableOpacity
-        style={styles.button}
-        onPress={() => this.openSearchModal()}>
-        <Text >{this.state.destname}</Text>
-        </TouchableOpacity>
-        <Form
-        ref="form"
-        type={Person}
-        options={options}
-        />
+        <View style={styles.markWrap}>
+            <View style={{flexDirection:'column',borderWidth:3}}>
+              <View style={{flexDirection:'row',justifyContent:'center', alignItems:'center',borderBottomWidth:3,paddingHorizontal:5}}>{driver}<Text style={styles.points}>{this.state.driverRating}</Text></View>
+              <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>{pax}<Text style={styles.points}>{this.state.paxRating}</Text></View>
+            </View>
+            <Image source={mark} style={styles.mark} resizeMode="contain" />
+            <View style={{justifyContent:'center', alignItems:'center',borderWidth:3,paddingHorizontal:5}}>
+              {points}
+              <Text style={styles.points}>{this.state.points}</Text>
+            </View>
+        </View>
+        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
+          <View>
+          <Form
+          ref="form"
+          type={Person}
+          options={options}
+          />
+          </View>
+          <View>
+          <TouchableOpacity
+          style={{backgroundColor: "#5187b6",paddingVertical: 20,marginTop: 0,alignItems:'center',width:200}}
+          onPress={() => this.openSearchModal()}>
+          <Text style={styles.buttonText}>{this.state.destname}</Text>
+          </TouchableOpacity>
+          </View>
+        </View>
         <TouchableOpacity activeOpacity={.5} onPress={this.onPress}>
           <View style={styles.button}>
             <Text style={styles.buttonText}>Create Trip</Text>
@@ -177,8 +226,7 @@ var Driver = React.createClass ({
             <MapView.Marker
             coordinate={this.state.destination}
             />
-          </MapView>
-        </View>
+        </MapView>
         </Image>
       </View>
     );
@@ -189,10 +237,10 @@ export default Driver;
 
 const styles = StyleSheet.create({
   map: {
-    position: 'absolute',
-    height:height*0.60,
+    position: 'relative',
+    height:height*0.37,
     width:width,
-    top: 205,
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
@@ -206,11 +254,16 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   markWrap: {
+    paddingVertical: 30,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginLeft: 20,
+    marginRight: 20
   },
   mark: {
     width: 150,
     height: 150,
-    flex: 1
   },
   background: {
     width,
@@ -240,14 +293,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "#FF3366",
+    backgroundColor: "#416788",
     paddingVertical: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 30,
+    marginTop: 10,
+    alignItems:'center'
   },
   buttonText: {
-    color: "#FFF",
+    color: "#E0E0E2",
     fontSize: 18,
   },
   forgotPasswordText: {

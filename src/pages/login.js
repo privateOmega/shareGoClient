@@ -28,12 +28,12 @@ var Person = t.struct({
 var options = {
   fields: {
     Username: {
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     },
     Password: {
       password: true,
       secureTextEntry: true,
-      placeholderTextColor: '#cccccc'
+      placeholderTextColor: '#ffffff'
     }
   },
   auto: 'placeholders'
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   forgotPasswordText: {
-    color: "#D8D8D8",
+    color: "#416788",
     backgroundColor: "transparent",
     textAlign: "right",
     paddingRight: 15,
@@ -180,10 +180,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   accountText: {
-    color: "#D8D8D8"
+    color: "#41739f"
   },
   signupLinkText: {
-    color: "#FFF",
+    color: "#416788",
     marginLeft: 5,
   }
 });
