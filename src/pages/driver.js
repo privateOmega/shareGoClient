@@ -145,7 +145,8 @@ var Driver = React.createClass ({
       .then((responseData) => {
           console.log("katta Success");
           console.log(responseData);
-          Actions.Trip({_id: responseData._id, role: "driver" });
+          Actions.Trip({type:'popAndReplace',_id: responseData._id, role: "driver",latitude:this.state.coordinate.latitude,longitude:this.state.coordinate.longitude });
+          
           alert("Trip Created Sucessfully");
       })
       .done();
@@ -154,11 +155,11 @@ var Driver = React.createClass ({
   componentDidMount(){
     this.watchID = navigator.geolocation.watchPosition((position) => {
             var lastPosition = JSON.stringify(position);
-            //console.log(position);
+            console.log("driver"+position);
             this.setState({
               region: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
+                latitude: parseFloat(position.coords.latitude),
+                longitude: parseFloat(position.coords.longitude),
                 latitudeDelta: LATITUDE_DELTA,
                 longitudeDelta: LONGITUDE_DELTA
               },
@@ -174,6 +175,7 @@ var Driver = React.createClass ({
     this.getUserDetails();
   },
   componentWillUnmount(){
+    console.log('Driver unmounted');
     navigator.geolocation.clearWatch(this.watchID);
   },
   onRegionChange(region,coordinate) {
@@ -218,7 +220,6 @@ var Driver = React.createClass ({
         <MapView
           style={styles.map}
           region={this.state.region}
-          onRegionChange={this.onRegionChange}
           >
             <MapView.Marker
             coordinate={this.state.coordinate}

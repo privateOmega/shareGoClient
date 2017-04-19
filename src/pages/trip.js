@@ -72,30 +72,6 @@ var Trip = React.createClass ({
       
     };
   },
-  componentDidMount(){
-
-     this.watchID = navigator.geolocation.watchPosition((position) => {
-            var lastPosition = JSON.stringify(position);
-            console.log(this.state.user+position.coords.latitude+position.coords.longitude);
-            this.socketSend(this.state.user,position.coords.latitude,position.coords.longitude);   
-            this.setState({
-              region: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                latitudeDelta: LATITUDE_DELTA,
-                longitudeDelta: LONGITUDE_DELTA
-              },
-              coordinate: {
-                latitude: parseFloat(position.coords.latitude),
-                longitude: parseFloat(position.coords.longitude),
-              }
-            });
-        });
-    console.log(now);
-  },
-  componentWillUnmount(){
-    navigator.geolocation.clearWatch(this.watchID);
-  },
   onRegionChange(region) {
     this.setState({ region});
   },
@@ -134,30 +110,102 @@ var Trip = React.createClass ({
       .done();
     }
   },
+  async onPress(latitude,longitude){
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    console.log("ivide ethi"+username);
+    if (token && username) {
+      fetch("http://"+config.ipaddr+"/logged/SOS?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:
+          "user="+encodeURIComponent(username)+
+          "&latitude="+encodeURIComponent(latitude)+
+          "&longitude="+encodeURIComponent(longitude)
+          
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+          console.log(responseData);
+          alert('SOS has been requested');
+      })
+      .done();
+    }
+  },
+  async cancelTrip(){
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    console.log("cancel ivide ethi"+username);
+    if (token && username) {
+      fetch("http://"+config.ipaddr+"/logged/cancelTrip?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:
+          "username="+encodeURIComponent(username)+
+          "&role="+encodeURIComponent(this.props.role)+
+          "&_id="+encodeURIComponent(this.props._id)
+          
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+          console.log(responseData);
+          alert('Trip has been cancelled');
+          Actions.Dashboard();
+      })
+      .done();
+    }
+  },
   componentWillMount(){
     this.getTripDetails();
+  },
+  componentWillUnmount(){
+    console.log('Trip unmounted');
+    navigator.geolocation.clearWatch(this.watchID);
+  },
+  componentDidMount(){
+     this.watchID = navigator.geolocation.watchPosition((position) => {
+            var lastPosition = JSON.stringify(position);
+            console.log('trip'+position);
+            this.setState({
+              region: {
+                latitude: parseFloat(position.coords.latitude),
+                longitude: parseFloat(position.coords.longitude),
+                latitudeDelta: LATITUDE_DELTA,
+                longitudeDelta: LONGITUDE_DELTA
+              },
+              coordinate: {
+                latitude: parseFloat(position.coords.latitude),
+                longitude: parseFloat(position.coords.longitude),
+              }
+            });
+        });
+    console.log(now);
   },
   render() {
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-          <View>
-            <View style={{flexDirection:'row'}}><Text style={styles.points}>Driver:</Text><Text></Text></View>
-          </View>
-          <TouchableOpacity activeOpacity={.5}>
-                <View style={{borderRadius:6,backgroundColor:'#416788',paddingVertical:20,marginTop:30,justifyContent:'center',alignItems:'center'}}>
+          <View style={{justifyContent:'center',alignItems:'center'}}>
+            <TouchableOpacity activeOpacity={.5} onPress={_ => this.onPress(this.state.coordinate.latitude,this.state.coordinate.longitude)}>
+                <View style={{borderRadius:6,backgroundColor:'red',paddingVertical:20,marginTop:30,justifyContent:'center',alignItems:'center',width:200}}>
                   <Text style={styles.buttonText}>SOS</Text>
                 </View>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={.5}>
+            </TouchableOpacity>
+          </View>
+            <TouchableOpacity activeOpacity={.5} onPress={this.cancelTrip}>
                 <View style={styles.button}>
                   <Text style={styles.buttonText}>Cancel Trip</Text>
                 </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
           <MapView
           style={styles.map}
           region={this.state.region}
-          onRegionChange={this.onRegionChange}
           >
             <MapView.Marker
             coordinate={this.state.start}
@@ -180,10 +228,10 @@ export default Trip;
 
 const styles = StyleSheet.create({
   map: {
-    position: 'absolute',
-    height:height*0.60,
+    position: 'relative',
+    height:height*0.65,
     width:width,
-    top: 205,
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
@@ -231,14 +279,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "#FF3366",
+    backgroundColor: "#416788",
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 30,
   },
   buttonText: {
-    color: "#FFF",
+    color: "#E0E0E2",
     fontSize: 18,
   },
   forgotPasswordText: {
