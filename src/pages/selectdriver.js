@@ -184,8 +184,7 @@ var Trip = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <Text>Role is {this.props.role}</Text>
-
+        
         <View style={styles.container}>
 
            <MapView region={this.state.region} style={styles.map} >
@@ -209,7 +208,7 @@ export default Trip;
 
 const styles = StyleSheet.create({
   map: {
-    position: 'absolute',
+    position: 'relative',
     height:height*0.60,
     width:width,
     top: 205,

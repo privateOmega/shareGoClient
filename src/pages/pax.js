@@ -22,19 +22,6 @@ const config            = require('../configurations/config');
 const t                 = require('tcomb-form-native');
 const ASPECT_RATIO      = width / height;
 
-var Form = t.form.Form;
-var Person = t.struct({
-  NoOfPax: t.String
-});
-var options = {
-  fields: {
-    NoOfPax: {
-      placeholderTextColor: '#cccccc'
-    }
-  },
-  auto: 'placeholders'
-};
-
 const LATITUDE_DELTA  = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 var moment = require('moment');
@@ -116,9 +103,8 @@ var Pax = React.createClass ({
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
     
-    var value = this.refs.form.getValue();
-    if (value) {
-      console.log(value);
+    if (token&&username) {
+      //console.log(value);
       fetch("http://"+config.ipaddr+"/logged/newPaxTrip?token="+token, {
         method: "POST",
         headers: {
@@ -152,17 +138,11 @@ var Pax = React.createClass ({
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-        <View style={styles.container}>
         <TouchableOpacity
         style={styles.button}
         onPress={() => this.openSearchModal()}>
-        <Text >{this.state.destname}</Text>
+        <Text style={styles.buttonText}>{this.state.destname}</Text>
         </TouchableOpacity>
-        <Form
-        ref="form"
-        type={Person}
-        options={options}
-        />
         <TouchableOpacity activeOpacity={.5} onPress={this.onPress}>
           <View style={styles.button}>
             <Text style={styles.buttonText}>Request Driver</Text>
@@ -171,7 +151,6 @@ var Pax = React.createClass ({
         <MapView
           style={styles.map}
           region={this.state.region}
-          onRegionChange={this.onRegionChange}
           >
             <MapView.Marker
             coordinate={this.state.coordinate}
@@ -180,7 +159,6 @@ var Pax = React.createClass ({
             coordinate={this.state.destination}
             />
           </MapView>
-        </View>
         </Image>
       </View>
     );
@@ -191,10 +169,10 @@ export default Pax;
 
 const styles = StyleSheet.create({
   map: {
-    position: 'absolute',
-    height:height*0.60,
+    position: 'relative',
+    height:height*0.65,
     width:width,
-    top: 205,
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
@@ -242,14 +220,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "#FF3366",
+    backgroundColor: "#416788",
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 30,
   },
   buttonText: {
-    color: "#FFF",
+    color: "#E0E0E2",
     fontSize: 18,
   },
   forgotPasswordText: {
