@@ -72,6 +72,19 @@ var Trip = React.createClass ({
       
     };
   },
+  decode(t,e){
+  for(var n,o,u=0,l=0,r=0,d= [],h=0,i=0,a=null,c=Math.pow(10,e||5);u<t.length;){
+    a=null,h=0,i=0;
+    do a=t.charCodeAt(u++)-63,i|=(31&a)<<h,h+=5;
+    while(a>=32);n=1&i?~(i>>1):i>>1,h=i=0;do a=t.charCodeAt(u++)-63,i|=(31&a)<<h,h+=5;
+    while(a>=32);o=1&i?~(i>>1):i>>1,l+=n,r+=o,d.push([l/c,r/c])}
+
+    return d=d.map(function(t){
+      return{
+        latitude:t[0],
+        longitude:t[1]}
+      })
+  },
   onRegionChange(region) {
     this.setState({ region});
   },
@@ -96,6 +109,11 @@ var Trip = React.createClass ({
       .then((response) => response.json())
       .then((responseData) => {
           console.log(responseData);
+          if(responseData.routeId.length){
+            this.setState({
+              coords:this.decode(responseData.routeId)
+            })
+          }
           this.setState({
             start:{
               latitude: parseFloat(responseData.startLatitude),
@@ -161,6 +179,37 @@ var Trip = React.createClass ({
       .done();
     }
   },
+  async endTrip(){
+    var token = await AsyncStorage.getItem('token');
+    var username = await AsyncStorage.getItem('username');
+    console.log("end ivide ethi with role "+username+this.props.role);
+    if (token && username) {
+      fetch("http://"+config.ipaddr+"/logged/endTrip?token="+token, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:
+          "username="+encodeURIComponent(username)+
+          "&role="+encodeURIComponent(this.props.role)+
+          "&_id="+encodeURIComponent(this.props._id)+
+          "&currentLatitude="+encodeURIComponent(this.state.coordinate.latitude)+
+          "&currentLongitude="+encodeURIComponent(this.state.coordinate.longitude)
+          
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+          console.log('BLAAAAA');
+          console.log("RD IS "+responseData.success);
+          if(responseData.success==true)
+          {  alert('Trip has been ended ! WHY'); }
+          else alert('You still have passengers');
+          Actions.Dashboard();
+      })
+      .done();
+    }
+  },
   componentWillMount(){
     this.getTripDetails();
   },
@@ -187,6 +236,34 @@ var Trip = React.createClass ({
         });
     console.log(now);
   },
+  rendering(){
+    //console.log(this.state.success+this.state.role+this.state._id);
+    if(this.props.role=="driver"){
+      return(
+          <TouchableOpacity activeOpacity={.5} onPress={this.cancelTrip}>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>Cancel Trip</Text>
+                </View>
+            </TouchableOpacity>
+      );
+    }
+    else{
+      return(
+        <View style={{alignItems:'center',marginLeft:10,marginRight:10}}>
+          <TouchableOpacity activeOpacity={.5} onPress={this.cancelTrip} style={{width:width*0.5}}>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>Cancel Trip</Text>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={.5} onPress={this.endTrip} style={{width:width*0.5}}>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>End Trip</Text>
+                </View>
+            </TouchableOpacity>
+        </View>
+      );
+    }
+  },
   render() {
     return (
       <View style={styles.container}>
@@ -198,11 +275,8 @@ var Trip = React.createClass ({
                 </View>
             </TouchableOpacity>
           </View>
-            <TouchableOpacity activeOpacity={.5} onPress={this.cancelTrip}>
-                <View style={styles.button}>
-                  <Text style={styles.buttonText}>Cancel Trip</Text>
-                </View>
-            </TouchableOpacity>
+          {this.rendering()}
+            
           <MapView
           style={styles.map}
           region={this.state.region}
@@ -216,7 +290,7 @@ var Trip = React.createClass ({
             <MapView.Marker
             coordinate={this.state.coordinate}
             />
-
+            
           </MapView>
         </Image>
       </View>

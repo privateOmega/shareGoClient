@@ -166,7 +166,12 @@ var Trip = React.createClass ({
       .then((response) => response.json())
       .then((responseData) => {
           console.log("SUCCESS AYO ?");
-          alert(driverUser + " AND " + username +" are sharing a ride together !");
+          if(responseData.success){
+            alert(driverUser + " AND " + username +" are sharing a ride together !");
+            Actions.Trip({type:'popAndReplace',_id: responseData._id, role: "pax",latitude:this.state.coordinate.latitude,longitude:this.state.coordinate.longitude });   
+          }
+          else
+            alert('Selecting driver failed');
          /* for(var username in responseData.driverList){
               console.log("\n" + username +": "+responseData.driverList[username]);
            }
