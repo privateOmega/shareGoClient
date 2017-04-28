@@ -167,8 +167,8 @@ var Trip = React.createClass ({
       .then((responseData) => {
           console.log("SUCCESS AYO ?");
           if(responseData.success){
-            alert(driverUser + " AND " + username +" are sharing a ride together !");
-            Actions.Trip({type:'popAndReplace',_id: responseData._id, role: "pax",latitude:this.state.coordinate.latitude,longitude:this.state.coordinate.longitude });   
+            alert("Your request to "+ driverUser+"has been forwarded");
+            Actions.Trip({type:'reset',_id: responseData._id, role: "pax",latitude:this.state.coordinate.latitude,longitude:this.state.coordinate.longitude });   
           }
           else
             alert('Selecting driver failed');
@@ -191,14 +191,17 @@ var Trip = React.createClass ({
         <Image source={background} style={styles.background} resizeMode="cover">
         
         <View style={styles.container}>
-
+          <Text style={{marginLeft:width*0.15,marginTop:10,fontSize:18,fontWeight:'bold',color:'red'}}> Select from Available Drivers </Text>
            <MapView region={this.state.region} style={styles.map} >
+              <MapView.Marker
+            coordinate={this.state.coordinate}
+            />
              {this.state.markers.map(marker => (
-              <MapView.Marker  onPress={() => {this.connectPaxtoDriver(marker.title,this.state.paxUser)}}
+              <MapView.Marker  onCalloutPress={() => {this.connectPaxtoDriver(marker.title,this.state.paxUser)}}
                  coordinate={marker.coordinates}
                  title={marker.title}
                  key={marker.title}
-                 
+                 pinColor={'blue'}
               />
             ))}
           </MapView>
@@ -214,9 +217,9 @@ export default Trip;
 const styles = StyleSheet.create({
   map: {
     position: 'relative',
-    height:height*0.60,
+    height:height*0.87,
     width:width,
-    top: 205,
+    top: 25,
     left: 0,
     right: 0,
     bottom: 0,

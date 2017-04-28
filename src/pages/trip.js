@@ -47,7 +47,8 @@ var Trip = React.createClass ({
         latitude: 0.000,
         longitude: 0.000
       },
-      user: "none"
+      user: "none",
+      coords:[]
     };
   },
   async _userLogout() {
@@ -94,6 +95,7 @@ var Trip = React.createClass ({
     this.setState({
       user: username
     });
+    console.log('enthelum vaa'+this.props._id+this.props.role);
     if (token && username) {
       fetch("http://"+config.ipaddr+"/logged/getTripDetails?token="+token, {
         method: "POST",
@@ -108,8 +110,8 @@ var Trip = React.createClass ({
       })
       .then((response) => response.json())
       .then((responseData) => {
-          console.log(responseData);
-          if(responseData.routeId.length){
+          console.log('hahshashash'+responseData.routeId);
+          if(responseData){
             this.setState({
               coords:this.decode(responseData.routeId)
             })
@@ -174,7 +176,7 @@ var Trip = React.createClass ({
       .then((responseData) => {
           console.log(responseData);
           alert('Trip has been cancelled');
-          Actions.Dashboard();
+          Actions.Dashboard({type:'reset'});
       })
       .done();
     }
@@ -280,7 +282,15 @@ var Trip = React.createClass ({
           <MapView
           style={styles.map}
           region={this.state.region}
-          >
+          followsUserLocation={true}>
+          <MapView.Polyline
+            coordinates={[
+                {latitude: this.state.start.latitude, longitude: this.state.start.longitude}, // optional
+                ...this.state.coords,
+                {latitude: this.state.end.latitude, longitude: this.state.end.longitude}, // optional
+            ]}
+            strokeWidth={4}
+        />
             <MapView.Marker
             coordinate={this.state.start}
             />

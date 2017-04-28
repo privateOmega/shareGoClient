@@ -50,8 +50,8 @@ var Login = React.createClass ({
   },
   onPress() {
     var value = this.refs.form.getValue();
+    console.log("yea");
     if (value) {
-      console.log(value);
       fetch("http://"+config.ipaddr+"/login", {
         method: "POST",
         headers: {
@@ -68,9 +68,10 @@ var Login = React.createClass ({
           alert("Authentication failed");
         }
         else{
+          console.log("yes");
           this._onValueChange('token', responseData.token);
           this._onValueChange('username', value.Username);
-          Actions.Dashboard();
+          Actions.Dashboard({type:'replace'});
         }
       })
       .done();

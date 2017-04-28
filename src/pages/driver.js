@@ -75,10 +75,11 @@ var Driver = React.createClass ({
         latitude: 0.000,
         longitude: 0.000
       },
-      destname: "V  Choose a location",
+      destname: "Choose a location",
       driverRating: 0,
       paxRating: 0,
-      points: 0
+      points: 0,
+      text: 'No of Seats'
     };
   },
   async _userLogout() {
@@ -117,10 +118,9 @@ var Driver = React.createClass ({
   async onPress() {
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
-    var value = this.refs.form.getValue();
-    console.log("yoyoy"+value);
+    console.log("yoyoy"+this.state.text);
     
-    if (value) {
+    if ((parseInt(this.state.text)<10)&&(parseInt(this.state.text)>0)&&(this.state.destination.latitude!=0.000)) {
       fetch("http://"+config.ipaddr+"/logged/newTrip?token="+token, {
         method: "POST",
         headers: {
@@ -134,9 +134,8 @@ var Driver = React.createClass ({
           "&endLatitude="+encodeURIComponent(this.state.destination.latitude)+
           "&endLongitude="+encodeURIComponent(this.state.destination.longitude)+
           "&user="+encodeURIComponent(username)+
-          "&seats="+encodeURIComponent(value.Pax)+
+          "&seats="+encodeURIComponent(this.state.text)+
           "&time="+encodeURIComponent(now)+
-          "&routeId="+encodeURIComponent("aah")+
           "&latitude="+encodeURIComponent(this.state.coordinate.latitude)+
           "&longitude="+encodeURIComponent(this.state.coordinate.longitude)+
           "&date="+encodeURIComponent(today)
@@ -145,12 +144,14 @@ var Driver = React.createClass ({
       .then((responseData) => {
           console.log("katta Success");
           console.log(responseData);
-          Actions.Trip({type:'popAndReplace',_id: responseData._id, role: "driver",latitude:this.state.coordinate.latitude,longitude:this.state.coordinate.longitude });
+          Actions.Trip({type:'reset',_id: responseData._id, role: "driver",latitude:this.state.coordinate.latitude,longitude:this.state.coordinate.longitude });
           
           alert("Trip Created Sucessfully");
       })
       .done();
     }
+    else
+      alert('Choose a location and Enter number of Seats')
   },
   componentDidMount(){
     this.watchID = navigator.geolocation.watchPosition((position) => {
@@ -196,21 +197,24 @@ var Driver = React.createClass ({
               <Text style={styles.points}>{this.state.points}</Text>
             </View>
         </View>
-        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
-          <View>
-          <Form
-          ref="form"
-          type={Person}
-          options={options}
-          />
+        <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+          <TouchableOpacity activeOpacity={.5} onPress={this.onPress} style={{width:width*0.48}}>
+          <View style={styles.button}>
+            <Text style={{height: 35,paddingTop:9,color: "#E0E0E2"}} onPress={() => this.openSearchModal()}>{this.state.destname}</Text>
           </View>
-          <View>
-          <TouchableOpacity
-          style={{backgroundColor: "#5187b6",paddingVertical: 20,marginTop: 0,alignItems:'center',width:200}}
-          onPress={() => this.openSearchModal()}>
-          <Text style={styles.buttonText}>{this.state.destname}</Text>
           </TouchableOpacity>
+        
+          <TouchableOpacity activeOpacity={.5} onPress={this.onPress} style={{width:width*0.48}}>
+          <View style={styles.button}>
+          <TextInput placeholder={this.state.text} placeholderTextColor='#D1D1D1' underlineColorAndroid='transparent' onChangeText={(text)=>this.setState({text})}  style={{
+            height: 35,
+            color: "#E0E0E2",
+      paddingLeft:25,
+      paddingRight:7,
+      width: width*0.48}}/>
           </View>
+          </TouchableOpacity>
+        
         </View>
         <TouchableOpacity activeOpacity={.5} onPress={this.onPress}>
           <View style={styles.button}>
@@ -226,6 +230,8 @@ var Driver = React.createClass ({
             />
             <MapView.Marker
             coordinate={this.state.destination}
+            draggable
+            onDrag={(e)=> console.log('onDrag'+e)}
             />
         </MapView>
         </Image>

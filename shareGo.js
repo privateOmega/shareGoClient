@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Router, Scene } from 'react-native-router-flux';
+import { Router, Scene,Actions } from 'react-native-router-flux';
 
 //Pages
 import Login from './src/pages/login';
@@ -21,12 +21,13 @@ export default class shareGo extends Component {
           <Scene key="Login" component={Login} initial={true} hideNavBar={true} onBack = {() =>{return null;}}/>
           <Scene key="Signup" component={Signup} hideNavBar={true}/>
           <Scene key="ForgotPassword" component={ForgotPassword} hideNavBar={true} />
-          <Scene key="Dashboard" component={Dashboard} hideNavBar={true} />
+          <Scene key="Dashboard" component={Dashboard} hideNavBar={true} onBack = {() =>{return null;}} type={Actions.Reset}/>
           <Scene key="Signupcont" component={Signupcont} hideNavBar={true} />
           <Scene key="Driver" component={Driver} hideNavBar={true} />
           <Scene key="Pax" component={Pax} hideNavBar={true} />
           <Scene key="Trip" component={Trip} hideNavBar={true} onBack = {() =>{return null;}}/>
-          <Scene key="SelectDriver" component={SelectDriver} hideNavBar={true}  />
+          <Scene key="SelectDriver" component={SelectDriver} hideNavBar={true} onBack = {() =>{return null;}} type={Actions.Reset} />
+        
         </Scene>
       </Router>
     )

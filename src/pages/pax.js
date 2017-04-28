@@ -103,7 +103,7 @@ var Pax = React.createClass ({
     var token = await AsyncStorage.getItem('token');
     var username = await AsyncStorage.getItem('username');
     
-    if (token&&username) {
+    if (token&&username&&(this.state.destname!="Select Destination")) {
       //console.log(value);
       fetch("http://"+config.ipaddr+"/logged/newPaxTrip?token="+token, {
         method: "POST",
@@ -129,10 +129,12 @@ var Pax = React.createClass ({
           alert(username +" requested trip success !");
           console.log("\nRESPONSE ID IS"+responseData._id +"RESPONSE\n ");
           console.log("buhahha");
-          Actions.SelectDriver({ type:'replace',paxlatitude:this.state.coordinate.latitude,paxlongitude:this.state.coordinate.longitude, role: "pax" });
+          Actions.SelectDriver({ type:'reset',paxlatitude:this.state.coordinate.latitude,paxlongitude:this.state.coordinate.longitude, role: "pax" });
       })
       .done();
     }
+    else
+      alert("Select Destination First!");
   },
     render() {
     return (
